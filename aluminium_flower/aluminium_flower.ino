@@ -81,8 +81,6 @@ void gaming(void *pvParameters) {
         ledcWrite(LED_G, 255 - green);
         ledcWrite(LED_B, 255 - blue);
 
-        Serial.printf("red:%d, green:%d, blue:%d\n", red, green, blue);
-
         flag1 = green > 200;
         flag2 = red < 20;
         flag3 = blue < 10;
@@ -90,8 +88,7 @@ void gaming(void *pvParameters) {
 		
 		// succeeded
 		if(flag1 && flag2 && flag3) {
-            succeeded();
-		}
+            succeeded(); }
 
 		// failed
 		if(flag4) {
@@ -157,8 +154,6 @@ void setup() {
 	pinMode(BUZZER, OUTPUT);
 
 //==== declared by giver ======================================================
-    Serial.begin(115200);
-    
     ledcAttachPin(led_red,  LED_R);
     ledcAttachPin(led_green,LED_G);
     ledcAttachPin(led_blue, LED_B);

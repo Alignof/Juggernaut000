@@ -37,18 +37,24 @@ void failed(void) {
 //  START of giver code (copy the below code you wrote into the specification)
 //=============================================================================
 
+typedef enum {
+    LED_R = 1,
+    LED_G,
+    LED_B,
+} Color;
+
 int time_limit = 300;
 const uint8_t threshold = 18;
 
 // giver pin assgin
 const uint8_t touch0 = 4;
-const uint8_t touch1 = 0;
+const uint8_t touch1 = 13;
 const uint8_t touch2 = 2;
 const uint8_t touch3 = 15;
 const uint8_t touch4 = 14;
-//const uint8_t touch5 = 13;
-//const uint8_t touch6 = 33;
-//const uint8_t touch7 = 32;
+const uint8_t touch5 = 33;
+//const uint8_t touch6 = 32;
+//const uint8_t touch7 = 0;
 const uint8_t led_red   = 21;
 const uint8_t led_green = 22;
 const uint8_t led_blue  = 23;
@@ -58,9 +64,29 @@ void gaming(void *pvParameters) {
     bool flag2 = false;
     bool flag3 = false;
     bool flag4 = false;
+    uint8_t red = 170;
+    uint8_t green = 100;
+    uint8_t blue = 30;
 
 	while(1) {
-        flag1 = touchRead(touch0) < threshold;
+        red     += touchRead(touch0) < threshold ? 10 : 0;
+        red     -= touchRead(touch1) < threshold ? 10 : 0;
+        green   += touchRead(touch2) < threshold ? 10 : 0;
+        green   -= touchRead(touch3) < threshold ? 10 : 0;
+        blue    += touchRead(touch4) < threshold ? 10 : 0;
+        blue    -= touchRead(touch5) < threshold ? 10 : 0;
+        delay(200);
+
+        ledcWrite(LED_R, 255 - red);
+        ledcWrite(LED_G, 255 - green);
+        ledcWrite(LED_B, 255 - blue);
+
+        Serial.printf("red:%d, green:%d, blue:%d\n", red, green, blue);
+
+        flag1 = green > 200;
+        flag2 = red < 20;
+        flag3 = blue < 10;
+        flag4 = red > 230;
 		
 		// succeeded
 		if(flag1 && flag2 && flag3) {
@@ -131,9 +157,14 @@ void setup() {
 	pinMode(BUZZER, OUTPUT);
 
 //==== declared by giver ======================================================
-	pinMode(led_red, OUTPUT);
-	pinMode(led_green, OUTPUT);
-	pinMode(led_blue, OUTPUT);
+    Serial.begin(115200);
+    
+    ledcAttachPin(led_red,  LED_R);
+    ledcAttachPin(led_green,LED_G);
+    ledcAttachPin(led_blue, LED_B);
+    ledcSetup(LED_R, 12000, 8);
+    ledcSetup(LED_G, 12000, 8);
+    ledcSetup(LED_B, 12000, 8);
 //=============================================================================
 
 	xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);

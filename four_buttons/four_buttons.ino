@@ -13,13 +13,8 @@
 #define RCLK     26
 #define SRCLK    25
 #define BUZZER   12
+#define SYSSW    36
 #define DATASIZE 16
-
-// giver pin assgin
-const uint8_t NAVY_BUTTON  = 22;
-const uint8_t WHITE_BUTTON = 18;
-const uint8_t RED_BUTTON   = 19;
-const uint8_t BLUE_BUTTON  = 23;
 
 typedef enum {
 	RED,
@@ -27,16 +22,43 @@ typedef enum {
 	GREEN,
 } SIGNAL;
 
-int time_limit = 300;
 bool timer_stop = false;
 SIGNAL signal = YELLOW;
 EventGroupHandle_t eg_handle;
+
+void succeeded(void) {
+    signal     = GREEN;
+    timer_stop = true;
+    while(1) delay(1e5);
+}
+
+void failed(void) {
+    signal = RED;
+    timer_stop = true;
+    digitalWrite(BUZZER, HIGH);
+    while(digitalRead(SYSSW) == HIGH);
+    digitalWrite(BUZZER, LOW);
+    while(1) delay(1e5);
+}
+
+//=============================================================================
+//  START of giver code (copy the below code you wrote into the specification)
+//=============================================================================
+
+int time_limit = 300;
+
+// giver pin assgin
+const uint8_t NAVY_BUTTON  = 22;
+const uint8_t WHITE_BUTTON = 18;
+const uint8_t RED_BUTTON   = 19;
+const uint8_t BLUE_BUTTON  = 23;
 
 void gaming(void *pvParameters) {
 	bool flag1 = false;
 	bool flag2 = false;
 	bool flag3 = false;
 	bool flag4 = false;
+
 	while(1) {
 		delay(1);
 		flag1 = (digitalRead(NAVY_BUTTON)  == LOW);
@@ -46,20 +68,19 @@ void gaming(void *pvParameters) {
 		
 		// succeeded
 		if(flag1 && flag2 && flag3) {
-			signal     = GREEN;
-			timer_stop = true;
-			while(1) delay(1e5);
+            succeeded();
 		}
 
 		// failed
 		if(!flag4) {
-			signal = RED;
-			timer_stop = true;
-			digitalWrite(BUZZER, HIGH);
-			while(1) delay(1e5);
+            failed();
 		}
 	}
 }
+
+//=============================================================================
+//  END of giver code
+//=============================================================================
 
 void display(void *pvParameters) {
 	int ms;
@@ -100,6 +121,10 @@ void display(void *pvParameters) {
 		for(int i=1;i<=4;i++) {
 			data_send(i, 0, signal);
 		}
+
+        if(digitalRead(SYSSW) == LOW) {
+            digitalWrite(BUZZER, LOW);
+        }
 	}
 }
 
@@ -112,6 +137,7 @@ void setup() {
 	pinMode(RCLK,   OUTPUT);
 	pinMode(SRCLK,  OUTPUT);
 	pinMode(BUZZER, OUTPUT);
+	pinMode(SYSSW,  INPUT);
 
 	// === declared by giver ===
 	pinMode(NAVY_BUTTON,  INPUT_PULLUP);
@@ -119,6 +145,8 @@ void setup() {
 	pinMode(RED_BUTTON,   INPUT_PULLUP);
 	pinMode(BLUE_BUTTON,  INPUT_PULLUP);
 	// =====================
+
+    while(digitalRead(SYSSW) == HIGH);
 
 	xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
 	xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);

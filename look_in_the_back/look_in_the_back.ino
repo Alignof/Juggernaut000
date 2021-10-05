@@ -1,3 +1,10 @@
+/*
+ * @date		2021 9/29
+ * @code name	Juggernaut#000 - look in the back
+ * @author		Takana Norimasa <Alignof@outlook.com>
+ * @repository	https://github.com/Alignof/Juggernaut_000
+ */ 
+
 #include <Wire.h>
 #include "freertos/task.h"
 #include "freertos/event_groups.h"

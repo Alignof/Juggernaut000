@@ -51,6 +51,11 @@ int time_limit = 600;
 const uint8_t RED_WIRE = 23;
 const uint8_t BLUE_WIRE = 18;
 
+void setup_pin(void) {
+	pinMode(RED_WIRE,  INPUT_PULLUP);
+	pinMode(BLUE_WIRE, INPUT_PULLUP);
+}
+
 void gaming(void *pvParameters) {
 	bool flag1 = false;
 	bool flag2 = false;
@@ -132,10 +137,7 @@ void setup() {
 	pinMode(BUZZER, OUTPUT);
 	pinMode(SYSSW,  INPUT);
 
-	// === declared by giver ===
-	pinMode(RED_WIRE,  INPUT_PULLUP);
-	pinMode(BLUE_WIRE, INPUT_PULLUP);
-	// =====================
+    setup_pin();
 
     while(digitalRead(SYSSW) == HIGH);
 

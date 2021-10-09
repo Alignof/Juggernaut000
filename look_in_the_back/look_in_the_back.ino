@@ -13,6 +13,7 @@
 #define RCLK     26
 #define SRCLK    25
 #define BUZZER   12
+#define SYSSW    36
 #define DATASIZE 16
 
 typedef enum {
@@ -35,7 +36,7 @@ void failed(void) {
     signal = RED;
     timer_stop = true;
     digitalWrite(BUZZER, HIGH);
-    delay(5000);
+    while(digitalRead(SYSSW) == HIGH);
     digitalWrite(BUZZER, LOW);
     while(1) delay(1e5);
 }
@@ -44,14 +45,29 @@ void failed(void) {
 //  START of giver code (copy the below code you wrote into the specification)
 //=============================================================================
 
+int time_limit = 300;
+uint8_t acce_data[6];
+const uint8_t DEVICE_ADDRESS = 0x1D;
 
 // giver pin assgin
 const uint8_t mySCL  = 22;
 const uint8_t mySDA  = 23;
 
-int time_limit = 300;
-uint8_t acce_data[6];
-const uint8_t DEVICE_ADDRESS = 0x1D;
+void setup_pin(void) {
+	pinMode(mySCL, INPUT_PULLUP);
+	pinMode(mySDA, INPUT_PULLUP);
+    Serial.begin(115200);
+
+    Wire.begin(mySDA, mySCL);
+	Wire.beginTransmission(DEVICE_ADDRESS);
+	Wire.write(0x31);
+	Wire.write(0x0B);
+	Wire.endTransmission();
+	Wire.beginTransmission(DEVICE_ADDRESS);
+	Wire.write(0x2d);
+	Wire.write(0x08);
+	Wire.endTransmission();
+}
 
 void getAccelerationData(void) {
 	Wire.beginTransmission(DEVICE_ADDRESS);
@@ -86,7 +102,7 @@ void gaming(void *pvParameters) {
         flag1 = ax > 2.0;
         flag2 = ay < -2.0;
         flag3 = az > 9.0;
-        flag4 = az > 11.0;
+        flag4 = az > 12.0;
 		
 		// succeeded
 		if(flag1 && flag2 && flag3) {
@@ -155,22 +171,11 @@ void setup() {
 	pinMode(RCLK,   OUTPUT);
 	pinMode(SRCLK,  OUTPUT);
 	pinMode(BUZZER, OUTPUT);
+	pinMode(SYSSW,  INPUT);
 
-//==== declared by giver ======================================================
-	pinMode(mySCL, INPUT_PULLUP);
-	pinMode(mySDA, INPUT_PULLUP);
-    Serial.begin(115200);
+    setup_pin();
 
-    Wire.begin(mySDA, mySCL);
-	Wire.beginTransmission(DEVICE_ADDRESS);
-	Wire.write(0x31);
-	Wire.write(0x0B);
-	Wire.endTransmission();
-	Wire.beginTransmission(DEVICE_ADDRESS);
-	Wire.write(0x2d);
-	Wire.write(0x08);
-	Wire.endTransmission();
-//=============================================================================
+    while(digitalRead(SYSSW) == HIGH);
 
 	xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
 	xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);

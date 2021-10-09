@@ -6,6 +6,7 @@
 #define RCLK     26
 #define SRCLK    25
 #define BUZZER   12
+#define SYSSW    36
 #define DATASIZE 16
 
 typedef enum {
@@ -28,7 +29,7 @@ void failed(void) {
     signal = RED;
     timer_stop = true;
     digitalWrite(BUZZER, HIGH);
-    delay(5000);
+    while(digitalRead(SYSSW) == HIGH);
     digitalWrite(BUZZER, LOW);
     while(1) delay(1e5);
 }
@@ -44,7 +45,7 @@ typedef enum {
 } Color;
 
 int time_limit = 300;
-const uint8_t threshold = 18;
+const uint8_t threshold = 23;
 
 // giver pin assgin
 const uint8_t touch0 = 4;
@@ -53,11 +54,18 @@ const uint8_t touch2 = 2;
 const uint8_t touch3 = 15;
 const uint8_t touch4 = 14;
 const uint8_t touch5 = 33;
-//const uint8_t touch6 = 32;
-//const uint8_t touch7 = 0;
 const uint8_t led_red   = 21;
 const uint8_t led_green = 22;
 const uint8_t led_blue  = 23;
+
+void setup_pin(void) {
+    ledcAttachPin(led_red,  LED_R);
+    ledcAttachPin(led_green,LED_G);
+    ledcAttachPin(led_blue, LED_B);
+    ledcSetup(LED_R, 12000, 8);
+    ledcSetup(LED_G, 12000, 8);
+    ledcSetup(LED_B, 12000, 8);
+}
 
 void gaming(void *pvParameters) {
     bool flag1 = false;
@@ -153,14 +161,7 @@ void setup() {
 	pinMode(SRCLK,  OUTPUT);
 	pinMode(BUZZER, OUTPUT);
 
-//==== declared by giver ======================================================
-    ledcAttachPin(led_red,  LED_R);
-    ledcAttachPin(led_green,LED_G);
-    ledcAttachPin(led_blue, LED_B);
-    ledcSetup(LED_R, 12000, 8);
-    ledcSetup(LED_G, 12000, 8);
-    ledcSetup(LED_B, 12000, 8);
-//=============================================================================
+    setup_pin();
 
 	xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
 	xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);

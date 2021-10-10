@@ -16,6 +16,10 @@ codeBlockCaptions: True
 \end{table}
 
 # 作問者より一言
+目の前には爆弾！
+そして好きな方を切ってくださいと言わんばかり赤と青のコード！
+でも，運任せに切る必要はありません．
+落ち着いてよくプログラムを読めばどっちを切るべきか分かるはずです．
 
 # 回路
 回路の全体の写真を[@fig:circuit]に示す．
@@ -26,11 +30,41 @@ codeBlockCaptions: True
 
 部品名          個数        データシート
 ------          ------      ------------
---              --          --
+\---            \---        \---
 
 : 回路に使用する部品の一覧 {#tbl:parts}
 
 # ソースコード
 [@lst:code]に競技に使用するソースコードを示す．
 ```{.cpp #lst:code caption="競技に使用するソースコード" title="timer.ino"}
+int time_limit = 600;
+
+// giver pin assgin
+const uint8_t RED_WIRE = 23;
+const uint8_t BLUE_WIRE = 18;
+
+void setup_pin(void) {
+	pinMode(RED_WIRE,  INPUT_PULLUP);
+	pinMode(BLUE_WIRE, INPUT_PULLUP);
+}
+
+void gaming(void *pvParameters) {
+	bool flag1 = false;
+	bool flag2 = false;
+
+	while(1) {
+		flag1 = (digitalRead(RED_WIRE)  == HIGH);
+		flag2 = (digitalRead(BLUE_WIRE) == HIGH);
+		
+		// succeeded
+		if(flag1) {
+            succeeded();
+		}
+
+		// failed
+		if(flag2) {
+            failed();
+		}
+	}
+}
 ```

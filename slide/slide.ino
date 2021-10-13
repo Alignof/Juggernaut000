@@ -1,11 +1,12 @@
 /*
  * @date		2021 10/06
- * @code name	Juggernaut#000 - red or blue
+ * @code name	Juggernaut#000 - slide
  * @author		Takana Norimasa <Alignof@outlook.com>
  * @brief		Educational bomb disposal game
  * @repository	https://github.com/Alignof/Juggernaut
  */ 
 
+#include <Wire.h>
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
 
@@ -45,32 +46,66 @@ void failed(void) {
 //  START of giver code (copy the below code you wrote into the specification)
 //=============================================================================
 
-int time_limit = 600;
+int time_limit = 900;
+uint8_t acce_data[6];
+const uint8_t DEVICE_ADDRESS = 0x1D;
 
 // giver pin assgin
-const uint8_t RED_WIRE = 23;
-const uint8_t BLUE_WIRE = 18;
+const uint8_t mySCL  = 22;
+const uint8_t mySDA  = 23;
+const uint8_t slide_sw = 15;
 
 void setup_pin(void) {
-	pinMode(RED_WIRE,  INPUT_PULLUP);
-	pinMode(BLUE_WIRE, INPUT_PULLUP);
+	pinMode(mySCL, INPUT_PULLUP);
+	pinMode(mySDA, INPUT_PULLUP);
+	pinMode(slide_sw, INPUT_PULLUP);
+    Serial.begin(115200);
+
+    Wire.begin(mySDA, mySCL);
+	Wire.beginTransmission(DEVICE_ADDRESS);
+	Wire.write(0x31);
+	Wire.write(0x0B);
+	Wire.endTransmission();
+	Wire.beginTransmission(DEVICE_ADDRESS);
+	Wire.write(0x2d);
+	Wire.write(0x08);
+	Wire.endTransmission();
+}
+
+void getAccelerationData(void) {
+	Wire.beginTransmission(DEVICE_ADDRESS);
+	Wire.write(0x32);
+	Wire.endTransmission();
+
+	Wire.requestFrom(DEVICE_ADDRESS, 6);
+
+	for(int i = 0; i < 6; i++) {
+		delay(1);
+		acce_data[i] = Wire.read();
+	}
 }
 
 void gaming(void *pvParameters) {
 	bool flag1 = false;
 	bool flag2 = false;
+	bool flag3 = false;
+	bool flag4 = false;
 
 	while(1) {
-		flag1 = (digitalRead(RED_WIRE)  == HIGH);
-		flag2 = (digitalRead(BLUE_WIRE) == HIGH);
+        if (digitalRead(slide_sw) == LOW) {
+        } else {
+        }
 		
+        az = (int16_t)((acce_data[5] << 8) | acce_data[4]) * 0.0392266;
+        flag4 = az > 12.0;
+
 		// succeeded
 		if(flag1) {
             succeeded();
 		}
 
 		// failed
-		if(flag2) {
+		if(flag4) {
             failed();
 		}
 	}

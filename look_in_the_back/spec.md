@@ -43,7 +43,7 @@ ADXL345         1           [https://www.analog.com/media/en/technical-documenta
 # ソースコード
 [@lst:code]に競技に使用するソースコードを示す．
 ```{.cpp #lst:code caption="競技に使用するソースコード" title="timer.ino"}
-int time_limit = 300;
+int time_limit = 900;
 uint8_t acce_data[6];
 const uint8_t DEVICE_ADDRESS = 0x1D;
 

@@ -45,7 +45,7 @@ void failed(void) {
 //  START of giver code (copy the below code you wrote into the specification)
 //=============================================================================
 
-int time_limit = 600;
+int time_limit = 900;
 uint8_t acce_data[6];
 const uint8_t DEVICE_ADDRESS = 0x1D;
 

@@ -44,7 +44,7 @@ typedef enum {
     LED_B,
 } Color;
 
-int time_limit = 300;
+int time_limit = 900;
 const uint8_t threshold = 23;
 
 // giver pin assgin
@@ -59,6 +59,7 @@ const uint8_t led_green = 22;
 const uint8_t led_blue  = 23;
 
 void setup_pin(void) {
+    Serial.begin(115200);
     ledcAttachPin(led_red,  LED_R);
     ledcAttachPin(led_green,LED_G);
     ledcAttachPin(led_blue, LED_B);
@@ -74,7 +75,7 @@ void gaming(void *pvParameters) {
     bool flag4 = false;
     uint8_t red = 170;
     uint8_t green = 100;
-    uint8_t blue = 30;
+    uint8_t blue = 50;
 
 	while(1) {
         red     += touchRead(touch0) < threshold ? 10 : 0;
@@ -89,9 +90,11 @@ void gaming(void *pvParameters) {
         ledcWrite(LED_G, 255 - green);
         ledcWrite(LED_B, 255 - blue);
 
+        Serial.printf("red: %d, green: %d, blue: %d\n", red, green, blue);
+
         flag1 = green > 200;
-        flag2 = red < 20;
-        flag3 = blue < 10;
+        flag2 = red < 100;
+        flag3 = blue < 50;
         flag4 = red > 230;
 		
 		// succeeded
@@ -159,13 +162,16 @@ void setup() {
 	pinMode(SER,    OUTPUT);
 	pinMode(RCLK,   OUTPUT);
 	pinMode(SRCLK,  OUTPUT);
+	pinMode(SYSSW,  INPUT);
 	pinMode(BUZZER, OUTPUT);
 
     setup_pin();
 
-	xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
-	xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);
-	delay(100);
+    while(digitalRead(SYSSW) == HIGH);
+
+    xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);
+    delay(100);
 }
 
 void data_send(int digit, int num, SIGNAL rgb) {

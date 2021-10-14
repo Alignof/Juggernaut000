@@ -26,6 +26,12 @@ codeBlockCaptions: True
 
 ![回路全体の写真](./circuit_002.jpg){#fig:circuit}
 
+え？ボタンの配線がよく見えない？
+しょうがないにゃあ...
+ボタン付近の配線の写真を[@fig:buttons]に示す．
+
+![ボタン部分の接写](./circuit_002_buttons.jpg){#fig:buttons}
+
 また，回路に使用する部品の一覧を[@tbl:parts]に示す．
 
 部品名          個数        データシート
@@ -37,7 +43,7 @@ codeBlockCaptions: True
 # ソースコード
 [@lst:code]に競技に使用するソースコードを示す．
 ```{.cpp #lst:code caption="競技に使用するソースコード" title="timer.ino"}
-int time_limit = 300;
+int time_limit = 900;
 
 // giver pin assgin
 const uint8_t NAVY_BUTTON  = 22;

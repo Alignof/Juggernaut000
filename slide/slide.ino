@@ -54,6 +54,10 @@ const uint8_t DEVICE_ADDRESS = 0x1D;
 const uint8_t mySCL  = 22;
 const uint8_t mySDA  = 23;
 const uint8_t slide_sw = 15;
+const uint8_t red = 17;
+const uint8_t blue = 18;
+const uint8_t green = 4;
+const uint8_t orange = 2;
 
 void setup_pin(void) {
 	pinMode(mySCL, INPUT_PULLUP);
@@ -93,7 +97,9 @@ void gaming(void *pvParameters) {
 
 	while(1) {
         if (digitalRead(slide_sw) == LOW) {
+            flag2 = digitalRead(orange) == LOW;
         } else {
+            flag3 = digitalRead(green) == LOW;
         }
 		
         az = (int16_t)((acce_data[5] << 8) | acce_data[4]) * 0.0392266;

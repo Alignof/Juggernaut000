@@ -54,15 +54,21 @@ const uint8_t DEVICE_ADDRESS = 0x1D;
 const uint8_t mySCL  = 22;
 const uint8_t mySDA  = 23;
 const uint8_t slide_sw = 15;
-const uint8_t red = 17;
-const uint8_t blue = 18;
-const uint8_t green = 4;
-const uint8_t orange = 2;
+const uint8_t trans_l = 16;
+const uint8_t trans_r = 17;
+const uint8_t gray_button = 2;
+const uint8_t flat_button = 4;
+const uint8_t black_button = 21;
 
 void setup_pin(void) {
 	pinMode(mySCL, INPUT_PULLUP);
 	pinMode(mySDA, INPUT_PULLUP);
 	pinMode(slide_sw, INPUT_PULLUP);
+	pinMode(gray_button, INPUT_PULLUP);
+	pinMode(flat_button, INPUT_PULLUP);
+	pinMode(black_button, INPUT_PULLUP);
+	pinMode(trans_r, OUTPUT);
+	pinMode(trans_l, OUTPUT);
     Serial.begin(115200);
 
     Wire.begin(mySDA, mySCL);
@@ -96,17 +102,34 @@ void gaming(void *pvParameters) {
 	bool flag4 = false;
 
 	while(1) {
-        if (digitalRead(slide_sw) == LOW) {
-            flag2 = digitalRead(orange) == LOW;
+        if (digitalRead(slide_sw) == HIGH) {
+            digitalWrite(trans_l, LOW);
+            digitalWrite(trans_r, HIGH);
+
+            if (digitalRead(flat_button) == LOW) {
+                flag1 = true;
+            }
         } else {
-            flag3 = digitalRead(green) == LOW;
+            digitalWrite(trans_r, LOW);
+            digitalWrite(trans_l, HIGH);
+
+            if (flag1 && digitalRead(black_button) == LOW) {
+                flag2 = true;
+            }
+
+            if (flag1 && flag2 && digitalRead(black_button) == HIGH &&
+                digitalRead(gray_button) == LOW) {
+                flag3 = true;
+            }
         }
+
+        Serial.printf("flag1:%d, flag2:%d, flag3:%d, flag4:%d\n", flag1, flag2, flag3, flag4);
 		
-        az = (int16_t)((acce_data[5] << 8) | acce_data[4]) * 0.0392266;
+        double az = (int16_t)((acce_data[5] << 8) | acce_data[4]) * 0.0392266;
         flag4 = az > 12.0;
 
 		// succeeded
-		if(flag1) {
+		if(flag3) {
             succeeded();
 		}
 
@@ -199,7 +222,6 @@ void data_send(int digit, int num, SIGNAL rgb) {
 	 */
 	data = (1<<(digit+10))+(1<<(rgb+8))+(seg[num]);
 
-	Serial.println(data, BIN);
 	digitalWrite(RCLK, LOW);
 	for(i = 0;i < DATASIZE;i++) {
 		digitalWrite(SER, (data>>i)&1);

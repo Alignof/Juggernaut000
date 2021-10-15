@@ -53,9 +53,9 @@ const uint8_t DEVICE_ADDRESS = 0x1D;
 // giver pin assgin
 const uint8_t mySCL  = 22;
 const uint8_t mySDA  = 23;
-const uint8_t slide_sw = 15;
 const uint8_t trans_l = 16;
 const uint8_t trans_r = 17;
+const uint8_t slide_sw = 15;
 const uint8_t gray_button = 2;
 const uint8_t flat_button = 4;
 const uint8_t black_button = 21;
@@ -100,6 +100,7 @@ void gaming(void *pvParameters) {
 	bool flag2 = false;
 	bool flag3 = false;
 	bool flag4 = false;
+    double az = 0;
 
 	while(1) {
         if (digitalRead(slide_sw) == HIGH) {
@@ -123,10 +124,10 @@ void gaming(void *pvParameters) {
             }
         }
 
-        Serial.printf("flag1:%d, flag2:%d, flag3:%d, flag4:%d\n", flag1, flag2, flag3, flag4);
-		
-        double az = (int16_t)((acce_data[5] << 8) | acce_data[4]) * 0.0392266;
+        getAccelerationData();
+        az = (int16_t)((acce_data[5] << 8) | acce_data[4]) * 0.0392266;
         flag4 = az > 12.0;
+        Serial.printf("az: %g\n", az);
 
 		// succeeded
 		if(flag3) {

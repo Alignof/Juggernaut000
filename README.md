@@ -1,6 +1,8 @@
 # Juggernaut\_000
 Juggernaut#000 に出題する問題．
 
+- [x] red\_or\_blue
 - [x] four\_buttons
-- [ ] look\_in\_the\_back
-- [ ] aluminium\_flower
+- [x] look\_in\_the\_back
+- [x] aluminium\_flower
+- [x] slide

@@ -6,6 +6,7 @@
 #define RCLK     26
 #define SRCLK    25
 #define BUZZER   12
+#define SYSSW    36
 #define DATASIZE 16
 
 typedef enum {
@@ -28,7 +29,7 @@ void failed(void) {
     signal = RED;
     timer_stop = true;
     digitalWrite(BUZZER, HIGH);
-    delay(5000);
+    while(digitalRead(SYSSW) == HIGH);
     digitalWrite(BUZZER, LOW);
     while(1) delay(1e5);
 }
@@ -37,35 +38,68 @@ void failed(void) {
 //  START of giver code (copy the below code you wrote into the specification)
 //=============================================================================
 
-int time_limit = 300;
-const uint8_t threshold = 18;
+typedef enum {
+    LED_R = 1,
+    LED_G,
+    LED_B,
+} Color;
+
+int time_limit = 900;
+const uint8_t threshold = 23;
 
 // giver pin assgin
 const uint8_t touch0 = 4;
-const uint8_t touch1 = 0;
+const uint8_t touch1 = 13;
 const uint8_t touch2 = 2;
 const uint8_t touch3 = 15;
 const uint8_t touch4 = 14;
-//const uint8_t touch5 = 13;
-//const uint8_t touch6 = 33;
-//const uint8_t touch7 = 32;
+const uint8_t touch5 = 33;
 const uint8_t led_red   = 21;
 const uint8_t led_green = 22;
 const uint8_t led_blue  = 23;
+
+void setup_pin(void) {
+    Serial.begin(115200);
+    ledcAttachPin(led_red,  LED_R);
+    ledcAttachPin(led_green,LED_G);
+    ledcAttachPin(led_blue, LED_B);
+    ledcSetup(LED_R, 12000, 8);
+    ledcSetup(LED_G, 12000, 8);
+    ledcSetup(LED_B, 12000, 8);
+}
 
 void gaming(void *pvParameters) {
     bool flag1 = false;
     bool flag2 = false;
     bool flag3 = false;
     bool flag4 = false;
+    uint8_t red = 170;
+    uint8_t green = 100;
+    uint8_t blue = 50;
 
 	while(1) {
-        flag1 = touchRead(touch0) < threshold;
+        red     += touchRead(touch0) < threshold ? 10 : 0;
+        red     -= touchRead(touch1) < threshold ? 10 : 0;
+        green   += touchRead(touch2) < threshold ? 10 : 0;
+        green   -= touchRead(touch3) < threshold ? 10 : 0;
+        blue    += touchRead(touch4) < threshold ? 10 : 0;
+        blue    -= touchRead(touch5) < threshold ? 10 : 0;
+        delay(200);
+
+        ledcWrite(LED_R, 255 - red);
+        ledcWrite(LED_G, 255 - green);
+        ledcWrite(LED_B, 255 - blue);
+
+        Serial.printf("red: %d, green: %d, blue: %d\n", red, green, blue);
+
+        flag1 = green > 200;
+        flag2 = red < 100;
+        flag3 = blue < 50;
+        flag4 = red > 230;
 		
 		// succeeded
 		if(flag1 && flag2 && flag3) {
-            succeeded();
-		}
+            succeeded(); }
 
 		// failed
 		if(flag4) {
@@ -128,17 +162,16 @@ void setup() {
 	pinMode(SER,    OUTPUT);
 	pinMode(RCLK,   OUTPUT);
 	pinMode(SRCLK,  OUTPUT);
+	pinMode(SYSSW,  INPUT);
 	pinMode(BUZZER, OUTPUT);
 
-//==== declared by giver ======================================================
-	pinMode(led_red, OUTPUT);
-	pinMode(led_green, OUTPUT);
-	pinMode(led_blue, OUTPUT);
-//=============================================================================
+    setup_pin();
 
-	xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
-	xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);
-	delay(100);
+    while(digitalRead(SYSSW) == HIGH);
+
+    xTaskCreatePinnedToCore(gaming,  "gaming",  8192, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(display, "display", 8192, NULL, 1, NULL, 1);
+    delay(100);
 }
 
 void data_send(int digit, int num, SIGNAL rgb) {
